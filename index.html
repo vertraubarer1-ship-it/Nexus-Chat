@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1020" />
+<meta name="description" content="Nexus – Freunde-Chat mit Ende-zu-Ende-Verschlüsselung, Räumen, Direktnachrichten und Spielen." />
+<title>Nexus · Freunde-Chat</title>
+
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Nexus" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+<style>
+/* ==========================================================================
+   Nexus – Freunde-Chat · Stylesheet
+   ========================================================================== */
+:root{
+  --bg:#0b1020; --bg-elevated:#121a30; --bg-panel:#161f38; --bg-sunken:#0e1526;
+  --border:#24304f; --border-soft:#1c2742;
+  --text:#e8ecf8; --text-dim:#9aa6c4; --text-faint:#6d7a9c;
+  --accent:#5b8cff; --accent-strong:#3f6fe6; --accent-soft:rgba(91,140,255,.14);
+  --danger:#ff5d6c; --ok:#35d0a5; --warn:#ffb454;
+  --radius:12px; --radius-sm:8px; --radius-lg:18px;
+  --shadow:0 18px 45px rgba(0,0,0,.45);
+  --sidebar-w:288px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+  background:var(--bg); color:var(--text);
+  -webkit-font-smoothing:antialiased; overscroll-behavior:none;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+[hidden]{display:none !important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ------------------------------------------------------------- Felder --- */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.field__label{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim)}
+.input{
+  width:100%;padding:11px 13px;border-radius:var(--radius-sm);
+  background:var(--bg-sunken);border:1px solid var(--border);color:var(--text);
+}
+.input::placeholder{color:var(--text-faint)}
+.input:focus{border-color:var(--accent);outline:none}
+/* Der Benutzername bleibt IMMER editierbar – nie disabled/grau. */
+.input[readonly]{opacity:1}
+.hint{font-size:12.5px;color:var(--text-dim);line-height:1.5;margin:6px 0 0}
+.hint--small{font-size:11.5px}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 16px;border-radius:var(--radius-sm);border:1px solid transparent;
+  background:var(--bg-panel);color:var(--text);font-weight:600;font-size:14px;
+  transition:background .15s,border-color .15s,transform .05s;
+}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--accent);color:#fff}
+.btn--primary:hover{background:var(--accent-strong)}
+.btn--ghost{background:transparent;border-color:var(--border);color:var(--text-dim)}
+.btn--ghost:hover{border-color:var(--accent);color:var(--text)}
+.btn--danger{background:transparent;border-color:rgba(255,93,108,.5);color:var(--danger)}
+.btn--danger:hover{background:rgba(255,93,108,.12)}
+.btn--block{width:100%}
+.btn--sm{padding:6px 11px;font-size:12.5px;border-radius:6px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn--link{background:none;border:none;color:var(--text-dim);padding:6px 4px;font-weight:500}
+.btn--link:hover{color:var(--text)}
+
+.alert{padding:10px 12px;border-radius:var(--radius-sm);font-size:13.5px;line-height:1.5;margin:0 0 12px}
+.alert--error{background:rgba(255,93,108,.12);border:1px solid rgba(255,93,108,.4);color:#ffb8bf}
+.alert--ok{background:rgba(53,208,165,.12);border:1px solid rgba(53,208,165,.35);color:#8ff0d3}
+.alert--info{background:var(--accent-soft);border:1px solid rgba(91,140,255,.35);color:#c3d6ff}
+
+/* -------------------------------------------------------------- Login --- */
+.auth{min-height:100dvh;display:grid;grid-template-columns:1.1fr 1fr}
+.auth__cover{position:relative;overflow:hidden;background:#070b16;min-height:100dvh}
+.auth__cover img{width:100%;height:100%;object-fit:cover;display:block}
+.auth__scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,10,22,.35),rgba(6,10,22,.9))}
+.auth__cover-text{position:absolute;left:36px;right:36px;bottom:44px}
+.kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.auth__title{font-size:clamp(30px,4vw,46px);margin:0 0 10px;letter-spacing:-.02em}
+.auth__subtitle{margin:0;color:var(--text-dim);font-size:15px;max-width:44ch;line-height:1.6}
+.auth__panel{display:flex;align-items:center;justify-content:center;padding:32px 24px}
+.card{width:100%;max-width:380px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);padding:26px;box-shadow:var(--shadow)}
+.card__title{margin:0 0 6px;font-size:22px}
+.card__hint{margin:0 0 18px;color:var(--text-dim);font-size:13.5px;line-height:1.55}
+.switch{margin:14px 0 0;font-size:13.5px;color:var(--text-dim);text-align:center}
+.switch button{background:none;border:none;color:var(--accent);padding:0;font-weight:600}
+.recovery{margin-top:14px;padding:11px 12px;border-radius:var(--radius-sm);background:var(--bg-sunken);border:1px dashed var(--border);font-size:12.5px;color:var(--text-dim);word-break:break-all}
+
+/* ---------------------------------------------------------------- App --- */
+.app{height:100dvh;display:grid;grid-template-columns:var(--sidebar-w) 1fr}
+.sidebar{background:var(--bg-elevated);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+.sidebar__head{padding:14px 16px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:-.01em}
+.brand__dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.me{margin-left:auto;display:flex;align-items:center;gap:8px;min-width:0}
+.me__name{font-size:13px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent);border:1px solid rgba(91,140,255,.3)}
+.pill--admin{background:rgba(255,180,84,.14);color:var(--warn);border-color:rgba(255,180,84,.35)}
+.pill--off{background:rgba(255,93,108,.14);color:var(--danger);border-color:rgba(255,93,108,.35)}
+
+.side__section{padding:12px 12px 4px;display:flex;flex-direction:column;min-height:0}
+.side__section--grow{flex:1 1 auto;overflow:hidden}
+.side__title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);margin:0 6px 8px;display:flex;align-items:center;gap:8px}
+.side__title .count{margin-left:auto;background:var(--bg-sunken);border:1px solid var(--border);border-radius:99px;padding:1px 8px;font-size:10.5px;color:var(--text-dim)}
+.list{list-style:none;margin:0;padding:0;overflow-y:auto;flex:1 1 auto;min-height:0}
+.row{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  padding:9px 10px;border-radius:var(--radius-sm);background:none;border:none;color:var(--text);
+}
+.row:hover{background:var(--bg-panel)}
+.row--active{background:var(--accent-soft);box-shadow:inset 2px 0 0 var(--accent)}
+.row__icon{width:28px;height:28px;border-radius:8px;background:var(--bg-panel);display:grid;place-items:center;font-size:14px;flex:none;border:1px solid var(--border-soft)}
+.row__main{min-width:0;flex:1}
+.row__name{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row__sub{font-size:11.5px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row__lock{font-size:11px;color:var(--warn)}
+.row__dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+.row__dot--off{background:var(--text-faint)}
+.side__form{display:flex;gap:6px;margin-top:8px}
+.side__form .input{padding:8px 10px;font-size:13px}
+.side__foot{padding:10px 12px;border-top:1px solid var(--border-soft);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.conn{font-size:11.5px;color:var(--text-faint);display:flex;align-items:center;gap:6px}
+.conn::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--danger)}
+.conn--on::before{background:var(--ok)}
+
+.main{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--bg)}
+.main__head{padding:13px 18px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:12px;background:var(--bg-elevated)}
+.main__title{margin:0;font-size:16px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.main__sub{margin:2px 0 0;font-size:12px;color:var(--text-faint)}
+.main__actions{margin-left:auto;display:flex;gap:6px;align-items:center}
+
+.log{list-style:none;margin:0;padding:18px;overflow-y:auto;flex:1 1 auto;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.msg{max-width:min(680px,86%);display:flex;flex-direction:column;gap:3px;animation:pop .16s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.msg__meta{font-size:11px;color:var(--text-faint);display:flex;gap:7px;align-items:center}
+.msg__bubble{padding:9px 13px;border-radius:14px;background:var(--bg-panel);border:1px solid var(--border-soft);line-height:1.5;font-size:14.5px;word-break:break-word;white-space:pre-wrap}
+.msg--me{align-self:flex-end;align-items:flex-end}
+.msg--me .msg__bubble{background:var(--accent);border-color:transparent;color:#fff;border-bottom-right-radius:4px}
+.msg--them .msg__bubble{border-bottom-left-radius:4px}
+.msg--sys{align-self:center;max-width:100%}
+.msg--sys .msg__bubble{background:transparent;border:1px dashed var(--border);color:var(--text-dim);font-size:12.5px;border-radius:99px;padding:5px 14px}
+.msg__del{background:none;border:none;color:var(--text-faint);font-size:11px;padding:0 2px}
+.msg__del:hover{color:var(--danger)}
+
+.composer{padding:12px 18px;border-top:1px solid var(--border-soft);display:flex;gap:9px;align-items:flex-end;background:var(--bg-elevated)}
+.composer textarea{
+  flex:1;resize:none;min-height:44px;max-height:160px;padding:11px 13px;border-radius:var(--radius);
+  background:var(--bg-sunken);border:1px solid var(--border);line-height:1.45;
+}
+.composer textarea:focus{border-color:var(--accent);outline:none}
+.empty{margin:auto;text-align:center;color:var(--text-faint);font-size:13.5px;line-height:1.7;padding:24px}
+.empty__big{font-size:34px;display:block;margin-bottom:10px}
+
+/* -------------------------------------------------------------- Spiele -- */
+.game{border-top:1px solid var(--border-soft);background:var(--bg-elevated);padding:12px 18px 14px}
+.game__head{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.game__title{font-size:13px;font-weight:700;letter-spacing:.02em}
+.game__status{font-size:12px;color:var(--text-dim);margin-left:auto}
+.game__menu{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:6px 10px;border-radius:99px;background:var(--bg-panel);border:1px solid var(--border);font-size:12px;color:var(--text-dim)}
+.chip:hover{border-color:var(--accent);color:var(--text)}
+.chip--active{background:var(--accent-soft);border-color:rgba(91,140,255,.45);color:var(--accent)}
+.board{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.board__side{display:flex;flex-direction:column;gap:8px}
+.gbtn{
+  background:var(--bg-panel);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;display:grid;place-items:center;font-size:18px;line-height:1;padding:0;
+}
+.gbtn:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.gbtn:disabled{opacity:.4;cursor:not-allowed}
+.gttt{display:grid;grid-template-columns:repeat(3,64px);grid-auto-rows:64px;gap:5px}
+.gc4{display:grid;grid-template-columns:repeat(7,40px);gap:5px}
+.gc4 .col{display:flex;flex-direction:column-reverse;gap:4px;background:var(--bg-sunken);padding:4px;border-radius:8px;border:1px solid var(--border-soft)}
+.gcell{width:32px;height:32px;border-radius:50%;background:#0a1020;border:1px solid var(--border-soft)}
+.gcell--r{background:var(--danger);border-color:transparent;box-shadow:0 0 8px rgba(255,93,108,.5)}
+.gcell--y{background:var(--warn);border-color:transparent;box-shadow:0 0 8px rgba(255,180,84,.5)}
+.gmemory{display:grid;grid-template-columns:repeat(4,58px);gap:6px}
+.gcard{width:58px;height:58px;border-radius:9px;background:var(--bg-panel);border:1px solid var(--border);display:grid;place-items:center;font-size:26px}
+.gcard--open{background:var(--accent-soft);border-color:rgba(91,140,255,.5)}
+.gcard--done{opacity:.45;border-color:var(--ok)}
+.gship{display:grid;grid-template-columns:repeat(10,26px);grid-auto-rows:26px;gap:2px}
+.gsq{width:26px;height:26px;border-radius:4px;background:var(--bg-sunken);border:1px solid var(--border-soft);font-size:12px;display:grid;place-items:center}
+.gsq--hit{background:rgba(255,93,108,.25);border-color:rgba(255,93,108,.5)}
+.gsq--miss{background:rgba(154,166,196,.12)}
+.gsq--ship{background:rgba(91,140,255,.2);border-color:rgba(91,140,255,.4)}
+.gtank{display:grid;grid-template-columns:repeat(12,24px);grid-auto-rows:24px;gap:1px}
+.gtile{width:24px;height:24px;border-radius:3px;background:var(--bg-sunken)}
+.gtile--wall{background:#2b3554}
+.gtile--t0{background:var(--accent)}
+.gtile--t1{background:var(--danger)}
+.grps{display:flex;gap:8px}
+.gpad{display:flex;gap:6px;flex-wrap:wrap}
+.glog{font-size:12px;color:var(--text-dim);max-width:280px;max-height:180px;overflow-y:auto;line-height:1.6}
+.gscore{display:flex;gap:14px;font-size:12.5px;color:var(--text-dim)}
+.gshop{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;max-width:520px}
+.gitem{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:7px 10px;border-radius:8px;background:var(--bg-panel);border:1px solid var(--border);font-size:12.5px}
+.gitem--mine{border-color:var(--accent)}
+.gitem--theirs{border-color:rgba(255,93,108,.5);opacity:.7}
+.gq{display:flex;gap:8px;align-items:center}
+
+/* --------------------------------------------------------------- Cover -- */
+.cover{
+  position:fixed;inset:0;z-index:9000;background:#05070f;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  text-align:center;padding:24px;
+}
+.cover__icon{font-size:40px}
+.cover__title{font-size:20px;margin:0}
+.cover__hint{color:var(--text-dim);font-size:13.5px;margin:0;max-width:38ch;line-height:1.6}
+
+/* --------------------------------------------------------------- Modal -- */
+.scrim{position:fixed;inset:0;z-index:8000;background:rgba(4,7,15,.72);display:grid;place-items:center;padding:20px}
+.modal{width:100%;max-width:440px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--shadow);max-height:88dvh;overflow-y:auto}
+.modal--wide{max-width:560px}
+.modal__title{margin:0 0 6px;font-size:18px}
+.modal__sub{margin:0 0 16px;font-size:13px;color:var(--text-dim);line-height:1.55}
+.modal__actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.qrbox{display:grid;place-items:center;background:#fff;padding:12px;border-radius:var(--radius);margin:0 auto}
+.qrbox svg{display:block;width:100%;height:auto;max-width:260px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12.5px;color:var(--text-dim)}
+.kv b{color:var(--text);font-weight:600}
+textarea.input{min-height:96px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+
+/* -------------------------------------------------------------- Toasts -- */
+.toasts{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9500;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(92vw,460px)}
+.toast{
+  background:var(--bg-panel);border:1px solid var(--border);border-radius:99px;
+  padding:10px 18px;font-size:13.5px;box-shadow:var(--shadow);animation:pop .18s ease-out;
+  max-width:100%;
+}
+.toast--error{border-color:rgba(255,93,108,.5);color:#ffb8bf}
+.toast--ok{border-color:rgba(53,208,165,.45);color:#8ff0d3}
+
+/* ---------------------------------------------------------- Responsive -- */
+@media (max-width:880px){
+  .auth{grid-template-columns:1fr}
+  .auth__cover{display:none}
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;inset:0 auto 0 0;width:min(84vw,var(--sidebar-w));z-index:7000;transform:translateX(-101%);transition:transform .2s}
+  .sidebar--open{transform:none;box-shadow:var(--shadow)}
+  .msg{max-width:92%}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;scroll-behavior:auto !important}}
+</style>
+</head>
+<body>
+
+<!-- ================================ ANMELDEN / KONTO ERSTELLEN ================================ -->
+<section id="auth-view" class="auth">
+  <div class="auth__cover">
+    <img src="assets/cover.jpg" alt="" width="1600" height="900" />
+    <div class="auth__scrim" aria-hidden="true"></div>
+    <div class="auth__cover-text">
+      <p class="kicker">Ende-zu-Ende · Räume · Spiele</p>
+      <h1 class="auth__title">Nexus</h1>
+      <p class="auth__subtitle">
+        Freunde-Chat mit echten Schlüsseln: Räume sind mit PBKDF2 + AES-GCM verschlüsselt,
+        Direktnachrichten über ECDH. Kein Server liest mit – der Broker sieht nur Chiffretext.
+      </p>
+    </div>
+  </div>
+
+  <div class="auth__panel">
+    <form id="auth-form" class="card" autocomplete="off" novalidate>
+      <h2 id="auth-title" class="card__title">Anmelden</h2>
+      <p id="auth-hint" class="card__hint">Melde dich mit deinem Namen und Passwort an.</p>
+
+      <label class="field">
+        <span class="field__label" for="auth-name">Benutzername</span>
+        <!-- bleibt immer editierbar: kein disabled, kein readonly -->
+        <input id="auth-name" class="input" type="text" name="name" inputmode="latin"
+               autocapitalize="none" autocorrect="off" spellcheck="false"
+               placeholder="3–16 Zeichen, a-z 0-9 _" maxlength="16" />
+      </label>
+
+      <label class="field">
+        <span class="field__label" for="auth-pass">Passwort</span>
+        <input id="auth-pass" class="input" type="password" name="password"
+               autocomplete="current-password" placeholder="mindestens 4 Zeichen" />
+      </label>
+
+      <label id="auth-pass2-wrap" class="field" hidden>
+        <span class="field__label" for="auth-pass2">Passwort wiederholen</span>
+        <input id="auth-pass2" class="input" type="password" name="password2"
+               autocomplete="new-password" placeholder="nochmal eingeben" />
+      </label>
+
+      <p id="auth-error" class="alert alert--error" role="alert" hidden></p>
+
+      <button id="auth-submit" class="btn btn--primary btn--block" type="submit">Anmelden</button>
+
+      <p class="switch">
+        <span id="auth-switch-label">Noch kein Konto?</span>
+        <button id="auth-toggle" type="button">Konto erstellen</button>
+      </p>
+
+      <div id="recovery-box" class="recovery" hidden>
+        <b>Wiederherstellungs-Code</b><br />
+        <span id="recovery-code"></span>
+        <p class="hint hint--small" style="margin-bottom:0">
+          Der Code liegt nur lokal auf diesem Gerät. Notiere ihn – ohne ihn ist ein
+          verlorenes Passwort nicht zurückzusetzen.
+        </p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ======================================= APP ======================================= -->
+<main id="app-view" class="app" hidden>
+  <aside id="sidebar" class="sidebar">
+    <header class="sidebar__head">
+      <div class="brand"><span class="brand__dot" aria-hidden="true"></span><span>Nexus</span></div>
+      <div class="me">
+        <span id="me-name" class="me__name">–</span>
+        <span id="me-admin" class="pill pill--admin" hidden>Admin</span>
+        <span id="me-conn" class="pill pill--off">offline</span>
+      </div>
+    </header>
+
+    <section class="side__section">
+      <h3 class="side__title">Räume <span id="room-count" class="count">0</span></h3>
+      <ul id="room-list" class="list"></ul>
+      <form id="room-form" class="side__form" autocomplete="off">
+        <input id="room-new-name" class="input" type="text" placeholder="Neuer Raum …" maxlength="40" />
+        <button class="btn btn--ghost" type="submit" title="Raum anlegen" aria-label="Raum anlegen">+</button>
+      </form>
+    </section>
+
+    <section class="side__section">
+      <h3 class="side__title">Direktnachrichten <span id="dm-count" class="count">0</span></h3>
+      <ul id="dm-list" class="list" style="max-height:150px"></ul>
+      <form id="dm-form" class="side__form" autocomplete="off">
+        <input id="dm-new-name" class="input" type="text" placeholder="Name …" maxlength="16" />
+        <button class="btn btn--ghost" type="submit" title="Chat öffnen" aria-label="Chat öffnen">→</button>
+      </form>
+    </section>
+
+    <section class="side__section side__section--grow">
+      <h3 class="side__title">Online <span id="peer-count" class="count">0</span></h3>
+      <ul id="peer-list" class="list"></ul>
+    </section>
+
+    <footer class="side__foot">
+      <span id="conn-state" class="conn">getrennt</span>
+      <button id="btn-settings" class="btn btn--link" type="button">Einstellungen</button>
+      <button id="btn-logout" class="btn btn--link" type="button">Abmelden</button>
+    </footer>
+  </aside>
+
+  <section class="main">
+    <header class="main__head">
+      <button id="btn-sidebar" class="btn btn--ghost btn--sm" type="button" aria-label="Seitenleiste">☰</button>
+      <div>
+        <h2 id="chat-title" class="main__title">Kein Chat geöffnet</h2>
+        <p id="chat-sub" class="main__sub">Wähle links einen Raum oder eine Person aus.</p>
+      </div>
+      <div class="main__actions">
+        <button id="btn-invite" class="btn btn--ghost btn--sm" type="button" hidden>Einladen</button>
+        <button id="btn-leave" class="btn btn--danger btn--sm" type="button" hidden>Verlassen</button>
+      </div>
+    </header>
+
+    <ol id="chat-log" class="log" aria-live="polite" aria-relevant="additions">
+      <li class="empty">
+        <span class="empty__big">💬</span>
+        Noch ist kein Chat offen.<br />Links einen Raum auswählen oder eine Direktnachricht starten.
+      </li>
+    </ol>
+
+    <section id="game-panel" class="game" hidden>
+      <div class="game__head">
+        <span class="game__title">Spiele</span>
+        <span id="game-status" class="game__status"></span>
+      </div>
+      <div id="game-menu" class="game__menu"></div>
+      <div id="game-board" class="board" style="margin-top:12px"></div>
+    </section>
+
+    <form id="composer" class="composer" autocomplete="off">
+      <textarea id="composer-input" rows="1" maxlength="4000" placeholder="Nachricht schreiben …" disabled></textarea>
+      <button id="composer-send" class="btn btn--primary" type="submit" disabled>Senden</button>
+    </form>
+  </section>
+</main>
+
+<!-- ============================== SCREENSHOT-COVER ==============================
+     WICHTIG: Kein window.blur / window.focus!
+     Diese Events feuern in iframes (Live-Preview) und beim Antippen der
+     Tastatur auf dem iPad, das Overlay blieb hängen und blockierte Chats
+     und Räume. Der Schutz hängt ausschließlich an document.hidden.        -->
+<div id="cover" class="cover" hidden>
+  <span class="cover__icon" aria-hidden="true">🔒</span>
+  <h2 class="cover__title">Nexus ist im Hintergrund</h2>
+  <p class="cover__hint">Zum Fortfahren einmal tippen.</p>
+</div>
+
+<div id="modal-root"></div>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<script src="vendor/mqtt.min.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script src="qr.js"></script>
+<script src="games.js"></script>
+<script>
+/* ==========================================================================
+   Nexus – Freunde-Chat · Client
+   --------------------------------------------------------------------------
+   Transport      MQTT über WSS (broker.emqx.io), Namespace nexusB2
+   Konten         retained nexusB2/acc/<name>  {h, t}
+   Räume          PBKDF2 + AES-GCM (Passwort → Schlüssel)
+   Direktnachrichten  ECDH P-256 → HKDF → AES-GCM
+   Admin          signierte Kommandos (ECDSA P-256), verifiziert mit ADMIN_PUB
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------ Konfiguration -- */
+
+  const APP_VERSION = '1.0.0';
+  const NS = 'nexusB2';
+  const BROKER = 'wss://broker.emqx.io:8084/mqtt';
+
+  /**
+   * Öffentlicher Admin-Schlüssel (ECDSA P-256, JWK).
+   * Nur damit signierte Kommandos auf nexusB2/admin werden ausgeführt.
+   * Der private Teil liegt in admin-key.local.txt und ist NICHT im Repo.
+   * Neu erzeugen:  node tools/admin-key.mjs
+   */
+  const ADMIN_PUB = {"key_ops":["verify"],"ext":true,"kty":"EC","x":"D2uJDmDxJQcpsEwWY4OJFr8ulsDp0xzRzjaFDKJsKIw","y":"FTbNR9z68-RAi78vq_xJO0SI5B41NglzwYRsCCOyAZY","crv":"P-256"};
+
+  const pairId = (a, b) => [String(a), String(b)].sort().join('~');
+
+  const TOPIC = {
+    presence: `${NS}/presence`,
+    admin: `${NS}/admin`,
+    all: `${NS}/#`,
+    acc: (name) => `${NS}/acc/${name}`,
+    accAll: `${NS}/acc/+`,
+    key: (name) => `${NS}/key/${name}`,
+    rooms: `${NS}/rooms/+`,
+    room: (id) => `${NS}/rooms/${id}`,
+    roomMsg: (id) => `${NS}/rooms/${id}/msg`,
+    roomGame: (id) => `${NS}/rooms/${id}/game`,
+    dm: (a, b) => `${NS}/dm/${pairId(a, b)}`,
+  };
+
+  const STORE = {
+    accounts: 'nx_acc',
+    identity: 'nx_keys',
+    roomKeys: 'nx_roomkeys',
+    me: 'nx_me',
+    settings: 'nx_settings',
+  };
+
+  const PRESENCE_INTERVAL = 25000;
+  const PRESENCE_TTL = 75000;
+
+  /* ------------------------------------------------------------- Zustand -- */
+
+  const S = {
+    me: null,
+    mode: 'login',
+    client: null,
+    connected: false,
+    peers: new Map(),
+    rooms: new Map(),
+    accounts: new Map(),
+    pubkeys: new Map(),
+    chats: new Map(),
+    open: null,
+    roomKeys: new Map(),
+    identity: null,
+    dmKeys: new Map(),
+    queue: new Map(),
+    match: null,
+    matchKey: null,
+    solo: false,
+    adminPriv: null,
+    settings: { notify: true, guard: true, sound: false },
+    guardFlag: false,
+    timers: [],
+  };
+
+  /* --------------------------------------------------------------- DOM --- */
+
+  const $ = (id) => document.getElementById(id);
+  const el = {
+    authView: $('auth-view'), authForm: $('auth-form'), authTitle: $('auth-title'),
+    authHint: $('auth-hint'), authName: $('auth-name'), authPass: $('auth-pass'),
+    authPass2: $('auth-pass2'), authPass2Wrap: $('auth-pass2-wrap'),
+    authError: $('auth-error'), authSubmit: $('auth-submit'),
+    authToggle: $('auth-toggle'), authSwitchLabel: $('auth-switch-label'),
+    recoveryBox: $('recovery-box'), recoveryCode: $('recovery-code'),
+
+    appView: $('app-view'), sidebar: $('sidebar'),
+    meName: $('me-name'), meAdmin: $('me-admin'), meConn: $('me-conn'),
+    roomList: $('room-list'), roomForm: $('room-form'), roomNewName: $('room-new-name'), roomCount: $('room-count'),
+    dmList: $('dm-list'), dmForm: $('dm-form'), dmNewName: $('dm-new-name'), dmCount: $('dm-count'),
+    peerList: $('peer-list'), peerCount: $('peer-count'),
+    connState: $('conn-state'), btnSettings: $('btn-settings'), btnLogout: $('btn-logout'),
+    btnSidebar: $('btn-sidebar'),
+
+    chatTitle: $('chat-title'), chatSub: $('chat-sub'), chatLog: $('chat-log'),
+    btnInvite: $('btn-invite'), btnLeave: $('btn-leave'),
+    gamePanel: $('game-panel'), gameMenu: $('game-menu'), gameBoard: $('game-board'), gameStatus: $('game-status'),
+    composer: $('composer'), composerInput: $('composer-input'), composerSend: $('composer-send'),
+
+    cover: $('cover'), modalRoot: $('modal-root'), toasts: $('toasts'),
+  };
+
+  /* ------------------------------------------------------------- Utils --- */
+
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+
+  function b64url(bytes) {
+    const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+    let bin = '';
+    for (let i = 0; i < arr.length; i += 1) bin += String.fromCharCode(arr[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function unb64url(text) {
+    const pad = String(text).replace(/-/g, '+').replace(/_/g, '/');
+    const bin = atob(pad + '='.repeat((4 - (pad.length % 4)) % 4));
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  function randomHex(n) {
+    const bytes = new Uint8Array(n);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function store(key, value) {
+    try {
+      if (value === undefined) return safeParse(localStorage.getItem(key));
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (err) { /* privater Modus etc. */ }
+    return undefined;
+  }
+
+  function safeParse(text) {
+    try { return JSON.parse(text); } catch (err) { return null; }
+  }
+
+  function clock(ts) {
+    const d = new Date(ts || Date.now());
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
+
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, (c) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+  }
+
+  function normalizeName(value) {
+    return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
+  }
+
+  function validName(name) {
+    return /^[a-z0-9_]{3,16}$/.test(name);
+  }
+
+  let toastTimer = null;
+  const toastTimers = new Set();
+  function toast(message, kind) {
+    const node = document.createElement('div');
+    node.className = `toast${kind ? ` toast--${kind}` : ''}`;
+    node.textContent = message;
+    el.toasts.appendChild(node);
+    const timer = setTimeout(() => {
+      node.remove();
+      toastTimers.delete(timer);
+    }, 3400);
+    toastTimers.add(timer);
+    toastTimer = timer;
+  }
+
+  /* ------------------------------------------------------------- Crypto -- */
+
+  /**
+   * Der Hash für die Konto-Registry: SHA-256 über "name::passwort",
+   * als Hex und auf 24 Zeichen gekürzt.
+   */
+  async function sha(text) {
+    const digest = await crypto.subtle.digest('SHA-256', enc.encode(String(text)));
+    const bytes = new Uint8Array(digest);
+    let hex = '';
+    for (let i = 0; i < bytes.length; i += 1) hex += bytes[i].toString(16).padStart(2, '0');
+    return hex.slice(0, 24);
+  }
+
+  async function pbkdf2Key(password, saltText) {
+    const base = await crypto.subtle.importKey('raw', enc.encode(String(password)), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: enc.encode(String(saltText)), iterations: 120000, hash: 'SHA-256' },
+      base,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+
+  async function aesEncrypt(key, payload) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(JSON.stringify(payload)));
+    return { v: 1, iv: b64url(iv), ct: b64url(new Uint8Array(ct)) };
+  }
+
+  async function aesDecrypt(key, envelope) {
+    if (!envelope || !envelope.iv || !envelope.ct) throw new Error('Ungültige Nachricht.');
+    const plain = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: unb64url(envelope.iv) },
+      key,
+      unb64url(envelope.ct)
+    );
+    return JSON.parse(dec.decode(plain));
+  }
+
+  async function exportKey(key) {
+    return b64url(new Uint8Array(await crypto.subtle.exportKey('raw', key)));
+  }
+
+  async function importKey(b64) {
+    return crypto.subtle.importKey('raw', unb64url(b64), { name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+  }
+
+  async function newIdentity() {
+    const pair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+    return {
+      priv: await crypto.subtle.exportKey('jwk', pair.privateKey),
+      pub: await crypto.subtle.exportKey('jwk', pair.publicKey),
+    };
+  }
+
+  function importPriv(jwk) {
+    return crypto.subtle.importKey('jwk', jwk, { name: 'ECDH', namedCurve: 'P-256' }, false, ['deriveBits']);
+  }
+
+  function importPub(jwk) {
+    const clean = { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y, ext: true, key_ops: [] };
+    return crypto.subtle.importKey('jwk', clean, { name: 'ECDH', namedCurve: 'P-256' }, true, []);
+  }
+
+  async function dmKey(peer) {
+    if (S.dmKeys.has(peer)) return S.dmKeys.get(peer);
+    const theirJwk = S.pubkeys.get(peer);
+    if (!theirJwk || !S.identity) return null;
+    const priv = await importPriv(S.identity.priv);
+    const pub = await importPub(theirJwk);
+    const bits = await crypto.subtle.deriveBits({ name: 'ECDH', public: pub }, priv, 256);
+    const hkdf = await crypto.subtle.importKey('raw', bits, 'HKDF', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey(
+      { name: 'HKDF', hash: 'SHA-256', salt: enc.encode(NS), info: enc.encode(`${NS}/dm/${pairId(S.me.name, peer)}`) },
+      hkdf,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+    S.dmKeys.set(peer, key);
+    return key;
+  }
+
+  function canon(obj) {
+    const walk = (value) => {
+      if (Array.isArray(value)) return value.map(walk);
+      if (value && typeof value === 'object') {
+        return Object.keys(value).sort().reduce((acc, k) => {
+          acc[k] = walk(value[k]);
+          return acc;
+        }, {});
+      }
+      return value;
+    };
+    return JSON.stringify(walk(obj));
+  }
+
+  async function importAdminPub() {
+    return crypto.subtle.importKey('jwk', ADMIN_PUB, { name: 'ECDSA', namedCurve: 'P-256' }, true, ['verify']);
+  }
+
+  async function verifyAdmin(body, signature) {
+    try {
+      const pub = await importAdminPub();
+      return crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, pub, unb64url(signature), enc.encode(canon(body)));
+    } catch (err) {
+      return false;
+    }
+  }
+
+  async function signAdmin(body) {
+    const priv = await crypto.subtle.importKey('jwk', S.adminPriv, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+    const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, priv, enc.encode(canon(body)));
+    return b64url(new Uint8Array(sig));
+  }
+
+  /* ------------------------------------------------------- Konto-Registry -- */
+
+  /**
+   * Registry für einmalige Namen.
+   *
+   *   get(name)  → { h, t } | null      (retained nexusB2/acc/<name>)
+   *   put(name, record)                (retained publish)
+   *
+   * Tests setzen window.NEXUS_AUTH und brauchen dann keinen Broker.
+   */
+  const defaultAuth = {
+    async get(name) {
+      const cached = S.accounts.get(name);
+      if (cached !== undefined) return cached;
+      return retainedRecord(TOPIC.acc(name));
+    },
+    async put(name, record) {
+      publish(TOPIC.acc(name), record, { retain: true });
+      S.accounts.set(name, record);
+    },
+  };
+
+  function authApi() {
+    return (typeof window !== 'undefined' && window.NEXUS_AUTH) ? window.NEXUS_AUTH : defaultAuth;
+  }
+
+  /** Wartet auf die retained-Nachricht eines Topics (oder liefert null). */
+  function retainedRecord(topic, timeout) {
+    return new Promise((resolve) => {
+      if (!S.client || !S.connected) { resolve(null); return; }
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        S.client.removeListener('message', onMessage);
+        try { S.client.unsubscribe(topic); } catch (err) { /* egal */ }
+        resolve(value);
+      };
+      const onMessage = (t, payload) => {
+        if (t !== topic) return;
+        finish(safeParse(dec.decode(payload)));
+      };
+      const timer = setTimeout(() => finish(null), timeout || 3000);
+      S.client.on('message', onMessage);
+      try { S.client.subscribe(topic); } catch (err) { finish(null); }
+    });
+  }
+
+  /* --------------------------------------------------------------- MQTT -- */
+
+  function publish(topic, payload, options) {
+    if (!S.client || !S.connected) return false;
+    try {
+      S.client.publish(topic, JSON.stringify(payload), options || {});
+      return true;
+    } catch (err) {
+      toast('Senden fehlgeschlagen: ' + err.message, 'error');
+      return false;
+    }
+  }
+
+  function connectMqtt() {
+    if (typeof mqtt === 'undefined' || !mqtt || typeof mqtt.connect !== 'function') {
+      setConn(false, 'Broker-Bibliothek fehlt');
+      return;
+    }
+    if (S.client) { try { S.client.end(true); } catch (err) { /* egal */ } }
+    setConn(false, 'verbinde …');
+    try {
+      S.client = mqtt.connect(BROKER, {
+        clientId: `nx_${S.me.name}_${randomHex(4)}`,
+        clean: true,
+        keepalive: 30,
+        reconnectPeriod: 3000,
+        connectTimeout: 12000,
+      });
+    } catch (err) {
+      setConn(false, 'Verbindung fehlgeschlagen');
+      toast('Broker nicht erreichbar: ' + err.message, 'error');
+      return;
+    }
+    S.client.on('connect', onBrokerConnect);
+    S.client.on('message', onBrokerMessage);
+    S.client.on('close', () => setConn(false, 'getrennt'));
+    S.client.on('offline', () => setConn(false, 'offline'));
+    S.client.on('reconnect', () => setConn(false, 'verbinde …'));
+    S.client.on('error', (err) => setConn(false, 'Fehler: ' + err.message));
+  }
+
+  function onBrokerConnect() {
+    setConn(true, 'verbunden');
+    try { S.client.subscribe(TOPIC.all); } catch (err) { /* egal */ }
+    publishIdentity();
+    announce('hello');
+    S.timers.push(setInterval(() => announce('ping'), PRESENCE_INTERVAL));
+    const pending = takeInvite();
+    if (pending) joinFromInvite(pending);
+  }
+
+  function setConn(online, label) {
+    S.connected = !!online;
+    el.meConn.textContent = online ? 'online' : 'offline';
+    el.meConn.classList.toggle('pill--off', !online);
+    el.connState.textContent = label || (online ? 'verbunden' : 'getrennt');
+    el.connState.classList.toggle('conn--on', !!online);
+  }
+
+  function announce(kind) {
+    if (!S.me) return;
+    publish(TOPIC.presence, { u: S.me.name, t: Date.now(), k: kind, pk: S.identity ? S.identity.pub : null });
+  }
+
+  function publishIdentity() {
+    if (!S.identity) return;
+    publish(TOPIC.key(S.me.name), { u: S.me.name, pk: S.identity.pub, t: Date.now() }, { retain: true });
+  }
+
+  function onBrokerMessage(topic, payload) {
+    let body;
+    try { body = JSON.parse(dec.decode(payload)); } catch (err) { return; }
+    if (!body || typeof body !== 'object') return;
+
+    if (topic === TOPIC.presence) { handlePresence(body); return; }
+    if (topic === TOPIC.admin) { handleAdmin(body); return; }
+    if (topic.startsWith(`${NS}/acc/`)) {
+      const name = topic.slice(`${NS}/acc/`.length);
+      S.accounts.set(name, body && body.h ? body : null);
+      return;
+    }
+    if (topic.startsWith(`${NS}/key/`)) {
+      const name = topic.slice(`${NS}/key/`.length);
+      if (body.pk) { S.pubkeys.set(name, body.pk); S.dmKeys.delete(name); renderPeers(); }
+      return;
+    }
+    if (topic.startsWith(`${NS}/rooms/`)) {
+      const rest = topic.slice(`${NS}/rooms/`.length);
+      const slash = rest.indexOf('/');
+      const roomId = slash < 0 ? rest : rest.slice(0, slash);
+      const tail = slash < 0 ? '' : rest.slice(slash + 1);
+      if (!tail) { handleRoomMeta(roomId, body); return; }
+      if (tail === 'msg') { handleRoomMessage(roomId, body); return; }
+      if (tail === 'game') { handleGameMessage(roomId, body); return; }
+    }
+    if (topic.startsWith(`${NS}/dm/`)) { handleDMMessage(topic, body); }
+  }
+
+  /* ------------------------------------------------------------- Presence -- */
+
+  function handlePresence(body) {
+    const name = String(body.u || '');
+    if (!name || name === (S.me && S.me.name)) return;
+    if (body.k === 'bye') { S.peers.delete(name); renderPeers(); return; }
+    S.peers.set(name, { t: body.t || Date.now(), pk: body.pk || null });
+    if (body.pk) { S.pubkeys.set(name, body.pk); S.dmKeys.delete(name); }
+    renderPeers();
+  }
+
+  function prunePeers() {
+    const now = Date.now();
+    let changed = false;
+    S.peers.forEach((peer, name) => {
+      if (now - peer.t > PRESENCE_TTL) { S.peers.delete(name); changed = true; }
+    });
+    if (changed) renderPeers();
+  }
+
+  /* ----------------------------------------------------------------- Admin -- */
+
+  function handleAdmin(body) {
+    verifyAdmin(body, body.sig).then((ok) => {
+      if (!ok) return;
+      if (body.cmd === 'room_close') {
+        S.rooms.delete(body.room);
+        const chatKey = `room:${body.room}`;
+        if (S.open === chatKey) closeChat();
+        S.chats.delete(chatKey);
+        systemLine('Raum wurde von der Administration geschlossen.');
+        renderRooms();
+        toast('Raum geschlossen', 'ok');
+      } else if (body.cmd === 'kick' && body.user === S.me.name) {
+        toast('Du wurdest gekickt.', 'error');
+        logout();
+      } else if (body.cmd === 'broadcast') {
+        systemLine(String(body.text || ''));
+      }
+    });
+  }
+
+  async function adminSend(cmd, extra) {
+    if (!S.adminPriv) { toast('Kein privater Admin-Schlüssel geladen.', 'error'); return false; }
+    const body = Object.assign({ v: 1, cmd, t: Date.now(), by: S.me.name }, extra || {});
+    try {
+      body.sig = await signAdmin(body);
+    } catch (err) {
+      toast('Signieren fehlgeschlagen: ' + err.message, 'error');
+      return false;
+    }
+    const ok = publish(TOPIC.admin, body);
+    if (ok) toast(`Admin-Kommando „${cmd}“ gesendet.`, 'ok');
+    return ok;
+  }
+
+  /* ------------------------------------------------------------ Räume ----- */
+
+  function handleRoomMeta(roomId, body) {
+    if (!body || !body.id) { S.rooms.delete(roomId); renderRooms(); return; }
+    S.rooms.set(roomId, {
+      id: body.id || roomId,
+      name: String(body.name || roomId),
+      pw: !!body.pw,
+      owner: body.owner || '',
+      t: body.t || 0,
+    });
+    renderRooms();
+  }
+
+  async function roomKey(room) {
+    if (S.roomKeys.has(room.id)) return S.roomKeys.get(room.id);
+    const saved = store(STORE.roomKeys) || {};
+    if (saved[room.id]) {
+      const key = await importKey(saved[room.id]);
+      S.roomKeys.set(room.id, key);
+      return key;
+    }
+    if (!room.pw) {
+      const key = await pbkdf2Key(`${NS}::public::${room.id}`, `${NS}:${room.id}`);
+      S.roomKeys.set(room.id, key);
+      return key;
+    }
+    return null;
+  }
+
+  async function setRoomPassword(room, password) {
+    const key = await pbkdf2Key(password, `${NS}:${room.id}`);
+    S.roomKeys.set(room.id, key);
+    const saved = store(STORE.roomKeys) || {};
+    saved[room.id] = await exportKey(key);
+    store(STORE.roomKeys, saved);
+    return key;
+  }
+
+  async function createRoom(name, password) {
+    const id = randomHex(4);
+    const meta = { id, name, pw: !!password, owner: S.me.name, t: Date.now() };
+    S.rooms.set(id, { id, name, pw: !!password, owner: S.me.name, t: meta.t });
+    publish(TOPIC.room(id), meta, { retain: true });
+    if (password) await setRoomPassword(S.rooms.get(id), password);
+    renderRooms();
+    return id;
+  }
+
+  /** Raum öffnen – läuft IMMER in try/catch, Fehler landen als Toast. */
+  async function openRoom(roomId) {
+    try {
+      const room = S.rooms.get(roomId);
+      if (!room) throw new Error('Raum nicht gefunden.');
+      let key = await roomKey(room);
+      if (!key) {
+        const password = await passwordDialog(room.name);
+        if (password === null) return null;
+        key = await setRoomPassword(room, password);
+      }
+      const chatKey = `room:${roomId}`;
+      if (!S.chats.has(chatKey)) {
+        S.chats.set(chatKey, { kind: 'room', id: roomId, name: room.name, key, msgs: [] });
+      } else {
+        S.chats.get(chatKey).key = key;
+      }
+      enterChat(chatKey);
+      return chatKey;
+    } catch (err) {
+      toast('Raum konnte nicht geöffnet werden: ' + err.message, 'error');
+      return null;
+    }
+  }
+
+  /** Direktnachricht öffnen – ebenfalls abgesichert. */
+  async function openDM(name) {
+    try {
+      const peer = normalizeName(name);
+      if (!validName(peer)) throw new Error('Ungültiger Name.');
+      if (peer === S.me.name) throw new Error('Das bist du selbst.');
+      if (!S.identity) throw new Error('Kein eigener Schlüssel vorhanden.');
+      const key = await dmKey(peer);
+      if (!key) throw new Error(`Öffentlicher Schlüssel von „${peer}“ noch nicht bekannt. Die Person muss kurz online sein.`);
+      const chatKey = `dm:${pairId(S.me.name, peer)}`;
+      if (!S.chats.has(chatKey)) {
+        S.chats.set(chatKey, { kind: 'dm', id: peer, name: peer, key, msgs: [] });
+      }
+      enterChat(chatKey);
+      return chatKey;
+    } catch (err) {
+      toast('Chat konnte nicht geöffnet werden: ' + err.message, 'error');
+      return null;
+    }
+  }
+
+  function enterChat(chatKey) {
+    S.open = chatKey;
+    const chat = S.chats.get(chatKey);
+    el.composerInput.disabled = false;
+    el.composerSend.disabled = false;
+    el.btnLeave.hidden = false;
+    el.btnInvite.hidden = !(chat && chat.kind === 'room');
+    el.chatTitle.textContent = chat ? (chat.kind === 'room' ? `# ${chat.name}` : `@ ${chat.name}`) : '–';
+    el.chatSub.textContent = chat
+      ? (chat.kind === 'room' ? 'Verschlüsselter Raum' : 'Ende-zu-Ende verschlüsselt (ECDH)')
+      : '';
+    renderLog();
+    renderRooms();
+    renderDMs();
+    setupGamePanel();
+    if (chatKey.startsWith('room:')) maybeStartQueued(chatKey.slice(5));
+    S.unread = 0;
+    updateBadge(0);
+    el.composerInput.focus();
+  }
+
+  function closeChat() {
+    S.open = null;
+    el.composerInput.disabled = true;
+    el.composerSend.disabled = true;
+    el.btnLeave.hidden = true;
+    el.btnInvite.hidden = true;
+    el.chatTitle.textContent = 'Kein Chat geöffnet';
+    el.chatSub.textContent = 'Wähle links einen Raum oder eine Person aus.';
+    el.chatLog.innerHTML = '<li class="empty"><span class="empty__big">💬</span>Noch ist kein Chat offen.<br />Links einen Raum auswählen oder eine Direktnachricht starten.</li>';
+    el.gamePanel.hidden = true;
+    renderRooms();
+    renderDMs();
+  }
+
+  /**
+   * Chat verlassen. Darf niemals abstürzen – auch dann nicht, wenn
+   * games.js fehlt oder die Partie schon weg ist.
+   */
+  function leaveChat() {
+    try {
+      if (S.open && S.open.startsWith('room:')) {
+        const roomId = S.open.slice(5);
+        if (typeof GX !== 'undefined' && GX) {
+          if (S.matchKey === S.open) {
+            publishGame(roomId, { t: 'leave', by: S.me.name });
+            S.match = null;
+            S.matchKey = null;
+          }
+          if (S.queue.has(roomId) && typeof GX.queueLeave === 'function') {
+            S.queue.set(roomId, GX.queueLeave(S.queue.get(roomId), S.me.name));
+            publishGame(roomId, { t: 'unqueue', by: S.me.name });
+          }
+        }
+      }
+      closeChat();
+    } catch (err) {
+      toast('Verlassen fehlgeschlagen: ' + err.message, 'error');
+      closeChat();
+    }
+  }
+
+  /* --------------------------------------------------------- Nachrichten -- */
+
+  function pushMessage(chatKey, msg) {
+    const chat = S.chats.get(chatKey);
+    if (!chat) return;
+    chat.msgs.push(msg);
+    if (chat.msgs.length > 400) chat.msgs.splice(0, chat.msgs.length - 400);
+    if (S.open === chatKey) renderLog();
+    notify(msg, chat);
+  }
+
+  async function sendMessage(text) {
+    const chat = S.chats.get(S.open);
+    const body = String(text || '').trim();
+    if (!chat || !body) return;
+    const msg = { f: S.me.name, t: Date.now(), txt: body };
+    try {
+      const envelope = await aesEncrypt(chat.key, msg);
+      const topic = chat.kind === 'room' ? TOPIC.roomMsg(chat.id) : TOPIC.dm(S.me.name, chat.id);
+      const ok = publish(topic, envelope);
+      if (!ok) throw new Error('Broker nicht verbunden.');
+      pushMessage(S.open, msg);
+      el.composerInput.value = '';
+      autoGrow();
+    } catch (err) {
+      toast('Senden fehlgeschlagen: ' + err.message, 'error');
+    }
+  }
+
+  async function handleRoomMessage(roomId, envelope) {
+    const chatKey = `room:${roomId}`;
+    const chat = S.chats.get(chatKey);
+    if (!chat || !chat.key) return;
+    try {
+      const msg = await aesDecrypt(chat.key, envelope);
+      if (!msg || typeof msg.txt !== 'string') return;
+      pushMessage(chatKey, msg);
+    } catch (err) {
+      if (!chat.warned) {
+        chat.warned = true;
+        if (S.open === chatKey) toast('Nachricht passt nicht zum Raum-Schlüssel.', 'error');
+      }
+    }
+  }
+
+  async function handleDMMessage(topic, envelope) {
+    const parts = topic.slice(`${NS}/dm/`.length).split('~');
+    const peer = parts.find((p) => p !== S.me.name);
+    if (!peer) return;
+    const chatKey = `dm:${pairId(S.me.name, peer)}`;
+    const chat = S.chats.get(chatKey);
+    if (!chat || !chat.key) return;
+    try {
+      const msg = await aesDecrypt(chat.key, envelope);
+      if (!msg || typeof msg.txt !== 'string') return;
+      pushMessage(chatKey, msg);
+    } catch (err) { /* fremde oder alte Sitzung – ignorieren */ }
+  }
+
+  /** Systemzeile – erscheint nur im gerade offenen Chat. */
+  function systemLine(text) {
+    if (!S.open) return;
+    const chat = S.chats.get(S.open);
+    if (!chat) return;
+    pushMessage(S.open, { f: '', t: Date.now(), txt: String(text), sys: true });
+  }
+
+  /* ------------------------------------------------------- Screenshot ----- */
+
+  /**
+   * Screenshot-/Hintergrund-Schutz.
+   *
+   * Früher lief das über window.blur / window.focus. In iframes und auf dem
+   * iPad (Tastatur, Multitasking) feuern diese Events ständig, das Overlay
+   * blieb stehen und blockierte Chats und Räume. Deshalb: ausschließlich
+   * document.hidden über visibilitychange, und Tippen schließt das Cover.
+   */
+  function showCover() {
+    el.cover.hidden = false;
+    S.guardFlag = true;
+  }
+
+  let lastGuardNote = 0;
+  function dismissCover() {
+    el.cover.hidden = true;
+    if (!S.guardFlag) return;
+    S.guardFlag = false;
+    // Nur im offenen Chat, und nicht bei jedem Wechsel erneut.
+    if (S.open && S.settings.guard && Date.now() - lastGuardNote > 60000) {
+      lastGuardNote = Date.now();
+      systemLine('Sichtschutz war aktiv, weil die App im Hintergrund war.');
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) showCover();
+  });
+  el.cover.addEventListener('click', dismissCover);
+  el.cover.addEventListener('touchstart', dismissCover, { passive: true });
+
+  /* ------------------------------------------------------------ Benachrichtigungen / Badge -- */
+
+  function notify(msg, chat) {
+    if (!S.settings.notify) return;
+    if (msg.sys) return;
+    if (msg.f === S.me.name) return;
+    if (S.open && S.chats.get(S.open) === chat && !document.hidden) return;
+    const title = chat.kind === 'room' ? `# ${chat.name}` : `@ ${chat.name}`;
+    const payload = {
+      type: 'notify',
+      title,
+      body: `${msg.f}: ${msg.txt}`,
+      room: chat.kind === 'room' ? chat.id : null,
+      user: chat.kind === 'dm' ? chat.id : null,
+    };
+    S.unread += 1;
+    updateBadge(S.unread);
+    const sw = navigator.serviceWorker;
+    if (sw && sw.controller) {
+      try { sw.controller.postMessage(payload); } catch (err) { /* egal */ }
+      return;
+    }
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      try { new Notification(title, { body: `${msg.f}: ${msg.txt}`, icon: 'icons/icon-192.png', badge: 'icons/badge-72.png' }); } catch (err) { /* egal */ }
+    }
+  }
+
+  function postSW(payload) {
+    const sw = navigator.serviceWorker;
+    if (sw && sw.controller) {
+      try { sw.controller.postMessage(payload); } catch (err) { /* egal */ }
+    }
+  }
+
+  function updateBadge(count) {
+    const n = Number.isInteger(count) ? count : (S.unread || 0);
+    postSW({ type: 'badge', count: n });
+    if (!navigator.setAppBadge) return;
+    try {
+      if (n > 0) navigator.setAppBadge(n);
+      else if (navigator.clearAppBadge) navigator.clearAppBadge();
+    } catch (err) { /* egal */ }
+  }
+
+  /* --------------------------------------------------------------- Login -- */
+
+  function setMode(mode) {
+    S.mode = mode === 'register' ? 'register' : 'login';
+    const register = S.mode === 'register';
+    el.authTitle.textContent = register ? 'Konto erstellen' : 'Anmelden';
+    el.authHint.textContent = register
+      ? 'Wähle einen Namen, den es noch nicht gibt. Ein Name = ein Konto.'
+      : 'Melde dich mit deinem Namen und Passwort an.';
+    el.authSubmit.textContent = register ? 'Konto erstellen' : 'Anmelden';
+    el.authToggle.textContent = register ? 'Stattdessen anmelden' : 'Konto erstellen';
+    el.authSwitchLabel.textContent = register ? 'Schon ein Konto?' : 'Noch kein Konto?';
+    el.authPass2Wrap.hidden = !register;
+    el.authPass.setAttribute('autocomplete', register ? 'new-password' : 'current-password');
+    el.authPass2.setAttribute('autocomplete', register ? 'new-password' : 'new-password');
+    el.recoveryBox.hidden = true;
+    authError('');
+  }
+
+  function authError(message, kind) {
+    el.authError.textContent = message || '';
+    el.authError.hidden = !message;
+    el.authError.className = `alert alert--${kind || 'error'}`;
+  }
+
+  function localAccounts() {
+    return store(STORE.accounts) || {};
+  }
+
+  function saveLocalAccount(record) {
+    const all = localAccounts();
+    all[record.name] = record;
+    store(STORE.accounts, all);
+  }
+
+  async function handleAuth(event) {
+    event.preventDefault();
+    const name = normalizeName(el.authName.value);
+    el.authName.value = name; // immer editierbar, nur normalisiert
+    const pass = String(el.authPass.value || '');
+
+    if (!validName(name)) {
+      authError('Benutzername: 3–16 Zeichen, nur a-z, 0-9 und _.');
+      return;
+    }
+    if (pass.length < 4) {
+      authError('Passwort: mindestens 4 Zeichen.');
+      return;
+    }
+
+    el.authSubmit.disabled = true;
+    authError('');
+    try {
+      const hash = await sha(`${name}::${pass}`);
+      const local = localAccounts()[name] || null;
+      const api = authApi();
+
+      if (S.mode === 'register') {
+        const pass2 = String(el.authPass2.value || '');
+        if (pass !== pass2) { authError('Die Passwörter stimmen nicht überein.'); return; }
+        const remote = api && api.get ? await api.get(name) : null;
+        if ((local && local.h && local.h !== hash) || (remote && remote.h && remote.h !== hash)) {
+          authError('Dieser Name ist schon vergeben.');
+          return;
+        }
+        const record = { name, h: hash, code: randomHex(8), created: Date.now() };
+        saveLocalAccount(record);
+        if (api && api.put) await api.put(name, { h: hash, t: record.created });
+        el.recoveryCode.textContent = record.code;
+        el.recoveryBox.hidden = false;
+        await startSession(record);
+      } else {
+        if (local && local.h) {
+          if (local.h !== hash) { authError('Falsches Passwort.'); return; }
+          await startSession(local);
+          return;
+        }
+        const remote = api ? await api.get(name) : null;
+        if (!remote || !remote.h) { authError('Unbekannter Name. Lege zuerst ein Konto an.'); return; }
+        if (remote.h !== hash) { authError('Falsches Passwort.'); return; }
+        const record = { name, h: hash, code: randomHex(8), created: remote.t || Date.now() };
+        saveLocalAccount(record);
+        await startSession(record);
+      }
+    } catch (err) {
+      authError('Anmeldung fehlgeschlagen: ' + err.message);
+    } finally {
+      el.authSubmit.disabled = false;
+    }
+  }
+
+  async function startSession(record) {
+    S.me = record;
+    store(STORE.me, { name: record.name });
+    S.identity = store(STORE.identity) || await newIdentity();
+    store(STORE.identity, S.identity);
+    el.meName.textContent = record.name;
+    el.authView.hidden = true;
+    el.appView.hidden = false;
+    el.authPass.value = '';
+    el.authPass2.value = '';
+    renderAll();
+    connectMqtt();
+    S.timers.push(setInterval(prunePeers, 15000));
+    updateBadge();
+    requestNotifyPermission();
+  }
+
+  function requestNotifyPermission() {
+    if (typeof Notification === 'undefined') return;
+    if (Notification.permission === 'default') {
+      try { Notification.requestPermission(); } catch (err) { /* egal */ }
+    }
+  }
+
+  function logout() {
+    announce('bye');
+    S.timers.forEach((t) => clearInterval(t));
+    S.timers = [];
+    if (S.client) { try { S.client.end(true); } catch (err) { /* egal */ } }
+    S.client = null;
+    S.connected = false;
+    S.me = null;
+    S.open = null;
+    S.chats.clear();
+    S.match = null;
+    S.matchKey = null;
+    store(STORE.me, null);
+    el.appView.hidden = true;
+    el.authView.hidden = false;
+    setMode('login');
+    setConn(false, 'getrennt');
+  }
+
+  /* ------------------------------------------------------------- Renders -- */
+
+  function renderAll() {
+    renderRooms();
+    renderDMs();
+    renderPeers();
+    renderLog();
+    updateBadge();
+  }
+
+  function listButton(opts) {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `row${opts.active ? ' row--active' : ''}`;
+    btn.dataset.action = opts.action;
+    btn.dataset.value = opts.value;
+    btn.innerHTML =
+      `<span class="row__icon">${opts.icon}</span>` +
+      `<span class="row__main"><span class="row__name">${escapeHTML(opts.name)}</span>` +
+      `<span class="row__sub">${escapeHTML(opts.sub || '')}</span></span>` +
+      (opts.tail || '');
+    li.appendChild(btn);
+    return li;
+  }
+
+  function renderRooms() {
+    const rooms = Array.from(S.rooms.values()).sort((a, b) => a.name.localeCompare(b.name));
+    el.roomList.innerHTML = '';
+    rooms.forEach((room) => {
+      const known = S.chats.has(`room:${room.id}`);
+      el.roomList.appendChild(listButton({
+        action: 'open-room', value: room.id, icon: '🏠',
+        name: room.name,
+        sub: room.pw ? (known ? 'geöffnet · geschützt' : 'mit Passwort') : (room.owner ? `von ${room.owner}` : 'offen'),
+        tail: room.pw ? '<span class="row__lock">🔒</span>' : '',
+        active: S.open === `room:${room.id}`,
+      }));
+    });
+    if (!rooms.length) {
+      el.roomList.innerHTML = '<li class="hint" style="padding:8px 10px">Noch keine Räume. Lege unten einen an.</li>';
+    }
+    el.roomCount.textContent = String(rooms.length);
+  }
+
+  function renderDMs() {
+    const chats = Array.from(S.chats.values()).filter((c) => c.kind === 'dm');
+    el.dmList.innerHTML = '';
+    chats.forEach((chat) => {
+      const online = S.peers.has(chat.id);
+      el.dmList.appendChild(listButton({
+        action: 'enter', value: `dm:${pairId(S.me.name, chat.id)}`, icon: '👤',
+        name: chat.name, sub: online ? 'online' : 'offline',
+        tail: `<span class="row__dot${online ? '' : ' row__dot--off'}"></span>`,
+        active: S.open === `dm:${pairId(S.me.name, chat.id)}`,
+      }));
+    });
+    if (!chats.length) el.dmList.innerHTML = '<li class="hint" style="padding:8px 10px">Noch keine Chats.</li>';
+    el.dmCount.textContent = String(chats.length);
+  }
+
+  function renderPeers() {
+    const peers = Array.from(S.peers.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    el.peerList.innerHTML = '';
+    peers.forEach(([name, peer]) => {
+      el.peerList.appendChild(listButton({
+        action: 'open-dm', value: name, icon: name.slice(0, 2).toUpperCase(),
+        name, sub: peer.pk ? 'Schlüssel bekannt' : 'Schlüssel folgt',
+        tail: '<span class="row__dot"></span>',
+      }));
+    });
+    if (!peers.length) el.peerList.innerHTML = '<li class="hint" style="padding:8px 10px">Gerade ist sonst niemand online.</li>';
+    el.peerCount.textContent = String(peers.length);
+  }
+
+  function renderLog() {
+    const chat = S.chats.get(S.open);
+    if (!chat) return;
+    el.chatLog.innerHTML = '';
+    chat.msgs.slice(-200).forEach((msg) => el.chatLog.appendChild(renderMsg(msg)));
+    el.chatLog.scrollTop = el.chatLog.scrollHeight;
+  }
+
+  function renderMsg(msg) {
+    const li = document.createElement('li');
+    if (msg.sys) {
+      li.className = 'msg msg--sys';
+      li.innerHTML = `<span class="msg__bubble">${escapeHTML(msg.txt)}</span>`;
+      return li;
+    }
+    const mine = msg.f === S.me.name;
+    li.className = `msg ${mine ? 'msg--me' : 'msg--them'}`;
+    li.innerHTML =
+      `<span class="msg__meta">${mine ? '' : `<b>${escapeHTML(msg.f)}</b>`}<span>${clock(msg.t)}</span></span>` +
+      `<span class="msg__bubble">${linkify(escapeHTML(msg.txt))}</span>`;
+    return li;
+  }
+
+  function linkify(text) {
+    return text.replace(/(https?:\/\/[^\s<]+)/g, (m) => `<a href="${m}" target="_blank" rel="noopener noreferrer">${m}</a>`);
+  }
+
+  /* --------------------------------------------------------------- Modal -- */
+
+  function closeModal() {
+    el.modalRoot.innerHTML = '';
+  }
+
+  /**
+   * Generischer Dialog. Ersetzt window.prompt() – der native Prompt ist auf
+   * iOS/iPad unzuverlässig und wird in iframes komplett blockiert.
+   */
+  function dialog(options) {
+    return new Promise((resolve) => {
+      const opts = options || {};
+      const scrim = document.createElement('div');
+      scrim.className = 'scrim';
+      const modal = document.createElement('div');
+      modal.className = `modal${opts.wide ? ' modal--wide' : ''}`;
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+
+      const title = document.createElement('h2');
+      title.className = 'modal__title';
+      title.textContent = opts.title || '';
+      modal.appendChild(title);
+
+      if (opts.sub) {
+        const sub = document.createElement('p');
+        sub.className = 'modal__sub';
+        if (opts.subHTML) sub.innerHTML = opts.sub;
+        else sub.textContent = opts.sub;
+        modal.appendChild(sub);
+      }
+
+      const body = document.createElement('div');
+      body.className = 'modal__body';
+      if (typeof opts.body === 'string') body.innerHTML = opts.body;
+      else if (opts.body) body.appendChild(opts.body);
+      modal.appendChild(body);
+
+      const inputs = {};
+      (opts.fields || []).forEach((field) => {
+        const label = document.createElement('label');
+        label.className = 'field';
+        const span = document.createElement('span');
+        span.className = 'field__label';
+        span.textContent = field.label;
+        const input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
+        input.className = 'input';
+        input.id = `dlg-${field.name}`;
+        if (field.type !== 'textarea') input.type = field.type || 'text';
+        if (field.placeholder) input.placeholder = field.placeholder;
+        if (field.value) input.value = field.value;
+        inputs[field.name] = input;
+        label.appendChild(span);
+        label.appendChild(input);
+        body.appendChild(label);
+      });
+
+      const actions = document.createElement('div');
+      actions.className = 'modal__actions';
+      (opts.actions || [{ label: 'Schließen', value: null }]).forEach((action) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `btn ${action.kind === 'primary' ? 'btn--primary' : action.kind === 'danger' ? 'btn--danger' : 'btn--ghost'}`;
+        button.textContent = action.label;
+        button.addEventListener('click', () => {
+          const values = {};
+          Object.keys(inputs).forEach((k) => { values[k] = inputs[k].value; });
+          closeModal();
+          if (action.value === undefined) resolve(values);
+          else if (action.value === null) resolve(null);
+          else resolve({ action: action.value, values });
+        });
+        actions.appendChild(button);
+      });
+      modal.appendChild(actions);
+      scrim.appendChild(modal);
+      scrim.addEventListener('click', (event) => {
+        if (event.target === scrim) { closeModal(); resolve(null); }
+      });
+      el.modalRoot.innerHTML = '';
+      el.modalRoot.appendChild(scrim);
+      const first = Object.values(inputs)[0];
+      if (first) first.focus();
+    });
+  }
+
+  /** Raum-Passwort abfragen – eigener Dialog, kein prompt(). */
+  function passwordDialog(roomName) {
+    return dialog({
+      title: 'Raum-Passwort',
+      sub: `„${roomName}“ ist verschlüsselt. Ohne das richtige Passwort bleiben die Nachrichten unlesbar.`,
+      fields: [{ name: 'password', label: 'Passwort', type: 'password', placeholder: 'Raum-Passwort' }],
+      actions: [
+        { label: 'Abbrechen', value: null },
+        { label: 'Öffnen', kind: 'primary' },
+      ],
+    }).then((result) => (result && result.password !== undefined ? String(result.password) : null));
+  }
+
+  /* --------------------------------------------------------------- Spiele -- */
+
+  function setupGamePanel() {
+    if (typeof GX === 'undefined' || !GX) { el.gamePanel.hidden = true; return; }
+    const chat = S.chats.get(S.open);
+    if (!chat) { el.gamePanel.hidden = true; return; }
+    el.gamePanel.hidden = false;
+    el.gameMenu.innerHTML = '';
+    GX.list().forEach((meta) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip';
+      chip.textContent = `${meta.icon} ${meta.name}`;
+      chip.dataset.game = meta.id;
+      el.gameMenu.appendChild(chip);
+      const solo = document.createElement('button');
+      solo.type = 'button';
+      solo.className = 'chip';
+      solo.textContent = `${meta.icon} Solo`;
+      solo.title = `${meta.name} gegen die KI`;
+      solo.dataset.solo = meta.id;
+      el.gameMenu.appendChild(solo);
+    });
+    if (chat.kind === 'room') {
+      const queueChip = document.createElement('button');
+      queueChip.type = 'button';
+      queueChip.className = 'chip';
+      queueChip.textContent = '🎲 Zufallsspiel in die Warteschlange';
+      queueChip.dataset.random = '1';
+      el.gameMenu.appendChild(queueChip);
+    }
+    renderGame();
+  }
+
+  function currentRoomId() {
+    return S.open && S.open.startsWith('room:') ? S.open.slice(5) : null;
+  }
+
+  function publishGame(roomId, payload) {
+    const chat = S.chats.get(`room:${roomId}`);
+    if (!chat || !chat.key) return false;
+    aesEncrypt(chat.key, payload).then((envelope) => publish(TOPIC.roomGame(roomId), envelope));
+    return true;
+  }
+
+  function agreedMatch(queue) {
+    return GX.create(queue.game, {
+      seed: queue.seed,
+      players: queue.players.slice().sort(),
+    });
+  }
+
+  /**
+   * Warteschlange zusammenführen. Gleicher Seed auf beiden Seiten:
+   * der lexikografisch kleinere Seed gewinnt, Spielernamen werden vereinigt.
+   * Ab dem zweiten Spieler startet die Partie automatisch.
+   */
+  function mergeQueue(roomId, gameId, seed, player) {
+    let queue = S.queue.get(roomId);
+    if (!queue || queue.game !== gameId) {
+      queue = GX.queueCreate({ game: gameId, room: roomId, seed: seed || randomHex(4) });
+    } else if (seed && String(seed) < String(queue.seed) && !(S.match && S.matchKey === `room:${roomId}`)) {
+      const kept = queue.players.slice();
+      queue = GX.queueCreate({ game: gameId, room: roomId, seed: String(seed) });
+      kept.forEach((name) => { queue = GX.queueJoin(queue, name).queue; });
+    }
+    if (player && !queue.players.includes(player)) {
+      queue = GX.queueJoin(queue, player).queue;
+    }
+    S.queue.set(roomId, queue);
+    return queue;
+  }
+
+  function maybeStartQueued(roomId) {
+    if (typeof GX === 'undefined' || !GX) return false;
+    const queue = S.queue.get(roomId);
+    if (!queue || queue.players.length < (GX.meta(queue.game).players || 2)) return false;
+    if (S.open !== `room:${roomId}`) return false;
+    if (S.match && S.matchKey === S.open) return false;
+    startMatch(agreedMatch(queue), false);
+    return true;
+  }
+
+  function joinQueue(gameId, solo) {
+    try {
+      if (typeof GX === 'undefined' || !GX) { toast('Spiele-Engine fehlt.', 'error'); return; }
+      const roomId = currentRoomId();
+      if (!roomId && !solo) { toast('Für Warteschlangen bitte einen Raum öffnen.', 'error'); return; }
+      if (solo) {
+        const match = GX.create(gameId, { seed: randomHex(4), players: [S.me.name, 'Nexus-KI'] });
+        S.solo = true;
+        startMatch(match, true);
+        return;
+      }
+      const existing = S.queue.get(roomId);
+      if (existing && existing.game !== gameId && existing.players.length) {
+        toast(`Im Raum läuft schon ${GX.meta(existing.game).name}.`, 'error');
+        return;
+      }
+      const seed = existing && existing.game === gameId ? existing.seed : randomHex(4);
+      const queue = mergeQueue(roomId, gameId, seed, S.me.name);
+      publishGame(roomId, { t: 'queue', game: gameId, seed: queue.seed, by: S.me.name });
+      if (!maybeStartQueued(roomId)) {
+        systemLine(`Du bist in der Warteschlange für ${GX.meta(gameId).name}.`);
+        renderGame();
+      }
+    } catch (err) {
+      toast('Spielstart fehlgeschlagen: ' + err.message, 'error');
+    }
+  }
+
+  function startMatch(match, solo) {
+    S.match = match;
+    S.matchKey = S.open;
+    S.solo = !!solo;
+    systemLine(`${GX.meta(match.id).name} gestartet – ${match.players.join(' gegen ')}.`);
+    renderGame();
+    maybeSoloTurn();
+  }
+
+  function maybeSoloTurn() {
+    if (!S.solo || !S.match || S.match.over) return;
+    if (S.match.turn !== 1) return;
+    setTimeout(() => {
+      if (!S.solo || !S.match || S.match.over || S.match.turn !== 1) return;
+      try {
+        S.match = GX.apply(S.match, GX.aiMove(S.match, 1));
+        renderGame();
+        maybeSoloTurn();
+      } catch (err) {
+        toast('KI-Zug fehlgeschlagen: ' + err.message, 'error');
+      }
+    }, 420);
+  }
+
+  async function handleGameMessage(roomId, envelope) {
+    const chat = S.chats.get(`room:${roomId}`);
+    if (!chat || !chat.key) return;
+    let msg;
+    try { msg = await aesDecrypt(chat.key, envelope); } catch (err) { return; }
+    if (!msg || typeof msg !== 'object') return;
+
+    if (msg.t === 'queue') {
+      if (msg.by === S.me.name) return;
+      if (typeof GX === 'undefined' || !GX) return;
+      mergeQueue(roomId, msg.game, msg.seed, msg.by);
+      // Zweiter Spieler → Partie startet automatisch.
+      maybeStartQueued(roomId);
+      if (S.open === `room:${roomId}`) renderGame();
+      return;
+    }
+    if (msg.t === 'unqueue') {
+      const queue = S.queue.get(roomId);
+      if (queue) S.queue.set(roomId, GX.queueLeave(queue, msg.by));
+      if (S.match && S.match.players.includes(msg.by)) { S.match = null; renderGame(); }
+      return;
+    }
+    if (msg.t === 'leave') {
+      if (S.match && S.match.players.includes(msg.by)) {
+        S.match = null;
+        systemLine(`${msg.by} hat die Partie verlassen.`);
+        renderGame();
+      }
+      return;
+    }
+    if (msg.t === 'move' && S.match && S.open === `room:${roomId}`) {
+      try {
+        S.match = GX.apply(S.match, msg.m);
+        renderGame();
+      } catch (err) {
+        toast('Zug passte nicht: ' + err.message, 'error');
+      }
+    }
+  }
+
+  function doMove(move) {
+    if (!S.match) return;
+    if (S.match.over) return;
+    const me = S.match.players.indexOf(S.me.name);
+    if (me < 0) { toast('Du bist nicht Teil dieser Partie.', 'error'); return; }
+    if (S.match.turn !== me) { toast('Du bist nicht am Zug.', 'error'); return; }
+    try {
+      S.match = GX.apply(S.match, move);
+      renderGame();
+      if (!S.solo) {
+        const roomId = currentRoomId();
+        if (roomId) publishGame(roomId, { t: 'move', m: move, by: S.me.name });
+      }
+      maybeSoloTurn();
+    } catch (err) {
+      toast('Zug nicht erlaubt: ' + err.message, 'error');
+    }
+  }
+
+  function mv(attrs) {
+    return Object.keys(attrs).map((k) => `data-${k}="${escapeHTML(String(attrs[k]))}"`).join(' ');
+  }
+
+  function renderGame() {
+    if (typeof GX === 'undefined' || !GX) return;
+    const state = S.match;
+    if (!state) {
+      const roomId = currentRoomId();
+      const queue = roomId ? S.queue.get(roomId) : null;
+      el.gameBoard.innerHTML = '';
+      el.gameStatus.textContent = queue
+        ? `Warteschlange: ${GX.meta(queue.game).name} · ${queue.players.length}/${GX.meta(queue.game).players}`
+        : 'Wähle ein Spiel. Zweiter Spieler startet automatisch.';
+      return;
+    }
+    const meta = GX.meta(state.id);
+    const status = GX.status(state);
+    const myTurn = !state.over && state.players[state.turn] === S.me.name;
+    el.gameStatus.textContent = `${meta.icon} ${status.label}${state.over ? '' : myTurn ? ' – du bist dran' : ''}`;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'board';
+    const me = Math.max(0, state.players.indexOf(S.me && S.me.name));
+    const view = GX.view(state, me);
+
+    switch (state.id) {
+      case 'tictactoe': wrap.innerHTML = renderTTT(view, myTurn); break;
+      case 'connect4': wrap.innerHTML = renderC4(view, myTurn); break;
+      case 'rps': wrap.innerHTML = renderRPS(view, myTurn); break;
+      case 'memory': wrap.innerHTML = renderMemory(view, myTurn); break;
+      case 'battleship': wrap.innerHTML = renderBattleship(view, myTurn, me); break;
+      case 'tankwars': wrap.innerHTML = renderTank(view, myTurn); break;
+      case 'questions': wrap.innerHTML = renderQuestions(view, myTurn); break;
+      case 'spend': wrap.innerHTML = renderSpend(view, myTurn); break;
+      default: wrap.innerHTML = '';
+    }
+
+    if (state.over) {
+      const again = document.createElement('div');
+      again.className = 'board__side';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn btn--ghost btn--sm';
+      button.textContent = 'Partie beenden';
+      button.dataset.end = '1';
+      again.appendChild(button);
+      wrap.appendChild(again);
+    }
+    el.gameBoard.innerHTML = '';
+    el.gameBoard.appendChild(wrap);
+  }
+
+  function renderTTT(v, myTurn) {
+    const cells = v.data.board.map((mark, i) => {
+      const label = mark === 'X' ? '❌' : mark === 'O' ? '⭕' : '';
+      return `<button class="gbtn" style="width:64px;height:64px" ${mv({ cell: i })} ${!myTurn || mark ? 'disabled' : ''}>${label}</button>`;
+    }).join('');
+    return `<div class="board__side"><div class="gttt">${cells}</div></div>`;
+  }
+
+  function renderC4(v, myTurn) {
+    const cols = v.data.grid.map((col, ci) => {
+      const cells = col.map((mark) => {
+        const cls = mark === 'R' ? ' gcell--r' : mark === 'Y' ? ' gcell--y' : '';
+        return `<span class="gcell${cls}"></span>`;
+      }).join('');
+      const full = col.every(Boolean);
+      return `<div class="col"><button class="btn btn--ghost btn--sm" style="margin-bottom:4px" ${mv({ col: ci })} ${!myTurn || full ? 'disabled' : ''}>▼</button>${cells}</div>`;
+    }).join('');
+    return `<div class="board__side"><div class="gc4">${cols}</div></div>`;
+  }
+
+  function renderRPS(v, myTurn) {
+    const icons = { rock: '✊', paper: '✋', scissors: '✌️' };
+    const mine = v.data.pending[v.players.indexOf(S.me.name) >= 0 ? v.players.indexOf(S.me.name) : v.turn];
+    const buttons = ['rock', 'paper', 'scissors'].map((shape) =>
+      `<button class="btn btn--ghost" ${mv({ shape })} ${!myTurn ? 'disabled' : ''}>${icons[shape]} ${GX.SHAPE_DE[shape]}</button>`
+    ).join('');
+    const rounds = v.data.rounds.map((r) =>
+      `${r.round}. ${icons[r.a]} vs ${icons[r.b]} → ${r.result === 'win' ? 'P1' : r.result === 'lose' ? 'P2' : 'gleich'}`
+    ).join('<br />');
+    return `<div class="board__side"><div class="grps">${buttons}</div>` +
+      `<div class="gscore"><span>${escapeHTML(v.players[0])}: ${v.data.scores[0]}</span><span>${escapeHTML(v.players[1])}: ${v.data.scores[1]}</span></div>` +
+      `<div class="hint">Deine Wahl: ${mine && mine !== 'hidden' ? icons[mine] : '–'}</div>` +
+      `<div class="glog">${rounds || 'Noch keine Runde.'}</div></div>`;
+  }
+
+  function renderMemory(v, myTurn) {
+    const cards = v.data.cards.map((card) => {
+      const open = card.done || v.data.open.includes(card.index);
+      const cls = `gcard${open ? ' gcard--open' : ''}${card.done ? ' gcard--done' : ''}`;
+      return `<button class="${cls}" ${mv({ card: card.index })} ${!myTurn || card.done ? 'disabled' : ''}>${open ? card.symbol : ''}</button>`;
+    }).join('');
+    return `<div class="board__side"><div class="gmemory">${cards}</div>` +
+      `<div class="gscore"><span>${escapeHTML(v.players[0])}: ${v.data.pairs[0]}</span><span>${escapeHTML(v.players[1])}: ${v.data.pairs[1]}</span></div></div>`;
+  }
+
+  function renderBattleship(v, myTurn, me) {
+    const who = Number.isInteger(me) ? me : 0;
+    const target = 1 - who;
+    const shots = v.data.shots[target];
+    const cells = [];
+    for (let y = 0; y < GX.BS_SIZE; y += 1) {
+      for (let x = 0; x < GX.BS_SIZE; x += 1) {
+        const shot = shots[y][x];
+        const cls = `gsq${shot === 'hit' ? ' gsq--hit' : shot === 'miss' ? ' gsq--miss' : ''}`;
+        cells.push(`<button class="${cls}" ${mv({ x, y })} ${!myTurn || shot ? 'disabled' : ''}>${shot === 'hit' ? '💥' : shot === 'miss' ? '·' : ''}</button>`);
+      }
+    }
+    const own = v.data.boards[who];
+    const ownShots = v.data.shots[who];
+    const ownCells = [];
+    for (let y = 0; y < GX.BS_SIZE; y += 1) {
+      for (let x = 0; x < GX.BS_SIZE; x += 1) {
+        const ship = own.grid[y][x];
+        const shot = ownShots[y][x];
+        const cls = `gsq${ship ? ' gsq--ship' : ''}${shot === 'hit' ? ' gsq--hit' : shot === 'miss' ? ' gsq--miss' : ''}`;
+        ownCells.push(`<span class="${cls}"></span>`);
+      }
+    }
+    return `<div class="board__side"><div class="hint">Gegnerisches Feld</div><div class="gship">${cells.join('')}</div></div>` +
+      `<div class="board__side"><div class="hint">Deine Flotte</div><div class="gship">${ownCells.join('')}</div>` +
+      `<div class="gscore"><span>Versenkt: ${v.data.sunk[target].length}/${GX.BS_FLEET.length}</span></div></div>`;
+  }
+
+  function renderTank(v, myTurn) {
+    const dirIcon = { N: '▲', S: '▼', E: '▶', W: '◀' };
+    const tiles = [];
+    for (let y = 0; y < GX.TW_SIZE; y += 1) {
+      for (let x = 0; x < GX.TW_SIZE; x += 1) {
+        let cls = 'gtile';
+        let label = '';
+        if (v.data.walls.some((w) => w.x === x && w.y === y)) cls += ' gtile--wall';
+        v.data.tanks.forEach((tank, index) => {
+          if (tank.x === x && tank.y === y && tank.hp > 0) {
+            cls += ` gtile--t${index}`;
+            label = index === v.turn ? dirIcon[tank.dir] : '';
+          }
+        });
+        tiles.push(`<span class="${cls}">${label}</span>`);
+      }
+    }
+    const buttons = ['N', 'E', 'S', 'W'].map((d) =>
+      `<button class="btn btn--ghost btn--sm" data-turn="${d}" ${!myTurn ? 'disabled' : ''}>${dirIcon[d]}</button>`
+    ).join('');
+    const me = v.data.tanks[Math.max(0, v.players.indexOf(S.me.name))];
+    return `<div class="board__side"><div class="gtank">${tiles.join('')}</div>` +
+      `<div class="gpad">${buttons}<button class="btn btn--ghost btn--sm" data-move="1" ${!myTurn ? 'disabled' : ''}>vor</button>` +
+      `<button class="btn btn--danger btn--sm" data-fire="1" ${!myTurn ? 'disabled' : ''}>feuern</button></div>` +
+      `<div class="gscore">${v.data.tanks.map((t, i) => `<span>${escapeHTML(v.players[i])}: ${'❤'.repeat(Math.max(0, t.hp))}</span>`).join('')}</div>` +
+      `<div class="hint">Deine HP: ${me ? me.hp : 0}/${GX.TW_HP}</div></div>`;
+  }
+
+  function renderQuestions(v, myTurn) {
+    const rows = v.data.asked.map((entry) => {
+      const label = entry.hint === 'correct' ? '✅ richtig' : entry.hint === 'higher' ? '⬆️ höher' : '⬇️ tiefer';
+      return `${entry.guess} → ${label}`;
+    }).join('<br />');
+    const input = document.createElement('input');
+    return `<div class="board__side"><div class="gq">` +
+      `<input class="input" id="q-guess" type="number" min="1" max="100" placeholder="1–100" style="width:120px" ${!myTurn ? 'disabled' : ''} />` +
+      `<button class="btn btn--primary btn--sm" data-guess="1" ${!myTurn ? 'disabled' : ''}>Raten</button></div>` +
+      `<div class="gscore"><span>Noch ${v.data.left} Fragen</span></div>` +
+      `<div class="glog">${rows || 'Noch kein Tipp.'}</div>` +
+      (v.data.secret ? `<div class="hint">Lösung (nur für die Gegenseite sichtbar): ${v.data.secret}</div>` : '') +
+      `</div>`;
+  }
+
+  function renderSpend(v, myTurn) {
+    const mine = v.players.indexOf(S.me.name);
+    const items = v.data.shop.map((item) => {
+      const owner = v.data.basket[0].some((b) => b.id === item.id) ? 0
+        : v.data.basket[1].some((b) => b.id === item.id) ? 1 : -1;
+      const cls = `gitem${owner === 0 ? ' gitem--mine' : owner === 1 ? ' gitem--theirs' : ''}`;
+      const buyable = owner < 0 && item.price <= v.data.budget[myTurn] && myTurn === (mine < 0 ? 0 : mine);
+      return `<div class="${cls}"><span>${escapeHTML(item.name)}<br /><span class="hint hint--small">${item.price} € → ${item.value} Pkt</span></span>` +
+        `<button class="btn btn--ghost btn--sm" ${mv({ buy: item.id })} ${!buyable ? 'disabled' : ''}>kaufen</button></div>`;
+    }).join('');
+    const score = (i) => v.data.basket[i].reduce((sum, b) => sum + b.value, 0);
+    return `<div class="board__side"><div class="gscore">` +
+      `<span>${escapeHTML(v.players[0])}: ${v.data.budget[0]} € · ${score(0)} Pkt</span>` +
+      `<span>${escapeHTML(v.players[1])}: ${v.data.budget[1]} € · ${score(1)} Pkt</span></div>` +
+      `<div class="gshop">${items}</div>` +
+      `<button class="btn btn--ghost btn--sm" data-pass="1" ${!myTurn ? 'disabled' : ''}>Passen</button></div>`;
+  }
+
+  /* ------------------------------------------------------ Event-Delegation -- */
+
+  el.gameMenu.addEventListener('click', (event) => {
+    const button = event.target.closest('button');
+    if (!button) return;
+    if (button.dataset.random) {
+      const list = GX.GAMES;
+      joinQueue(list[Math.floor(Math.random() * list.length)], false);
+      return;
+    }
+    if (button.dataset.solo) { joinQueue(button.dataset.solo, true); return; }
+    if (button.dataset.game) {
+      if (currentRoomId()) joinQueue(button.dataset.game, false);
+      else joinQueue(button.dataset.game, true);
+    }
+  });
+
+  el.gameBoard.addEventListener('click', (event) => {
+    const button = event.target.closest('button');
+    if (!button) return;
+    if (button.dataset.end) { S.match = null; S.matchKey = null; renderGame(); return; }
+    if (!S.match || S.match.over) return;
+    if (button.dataset.guess) {
+      const input = document.getElementById('q-guess');
+      const value = Number(input && input.value);
+      if (!value) { toast('Bitte eine Zahl eingeben.', 'error'); return; }
+      doMove({ guess: value });
+      return;
+    }
+    if (button.dataset.turn) { doMove({ type: 'turn', dir: button.dataset.turn }); return; }
+    if (button.dataset.move) { doMove({ type: 'move' }); return; }
+    if (button.dataset.fire) { doMove({ type: 'fire' }); return; }
+    if (button.dataset.pass) { doMove({ pass: true }); return; }
+    if (button.dataset.card !== undefined) {
+      const pool = S.match.data.open || [];
+      if (S.match.data.cards[Number(button.dataset.card)].done) return;
+      if (pool.length === 0) { S.match.data.open = [Number(button.dataset.card)]; renderGame(); return; }
+      if (pool.length === 1) {
+        const first = pool[0];
+        S.match.data.open = [];
+        if (first === Number(button.dataset.card)) return;
+        doMove({ a: first, b: Number(button.dataset.card) });
+      }
+      return;
+    }
+    const move = {};
+    let any = false;
+    ['cell', 'col', 'shape', 'buy', 'x', 'y'].forEach((field) => {
+      if (button.dataset[field] !== undefined) {
+        move[field] = field === 'shape' || field === 'buy' ? button.dataset[field] : Number(button.dataset[field]);
+        any = true;
+      }
+    });
+    if (any) doMove(move);
+  });
+
+  /* ------------------------------------------------------------- Wiring --- */
+
+  function autoGrow() {
+    el.composerInput.style.height = 'auto';
+    el.composerInput.style.height = `${Math.min(160, el.composerInput.scrollHeight)}px`;
+  }
+
+  el.authForm.addEventListener('submit', handleAuth);
+  el.authToggle.addEventListener('click', () => setMode(S.mode === 'register' ? 'login' : 'register'));
+  el.authName.addEventListener('input', () => {
+    const caret = el.authName.selectionStart;
+    el.authName.value = el.authName.value.toLowerCase();
+    try { el.authName.setSelectionRange(caret, caret); } catch (err) { /* egal */ }
+    authError('');
+  });
+
+  el.roomForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const name = String(el.roomNewName.value || '').trim();
+    if (name.length < 2) { toast('Raumname zu kurz.', 'error'); return; }
+    const result = await dialog({
+      title: 'Raum anlegen',
+      sub: 'Mit Passwort ist der Raum Ende-zu-Ende verschlüsselt. Ohne Passwort kann jeder mitlesen, der den Raum findet.',
+      fields: [
+        { name: 'name', label: 'Name', value: name },
+        { name: 'password', label: 'Passwort (optional)', type: 'password', placeholder: 'leer = offener Raum' },
+      ],
+      actions: [{ label: 'Abbrechen', value: null }, { label: 'Anlegen', kind: 'primary' }],
+    });
+    if (!result) return;
+    const id = await createRoom(String(result.name).trim(), String(result.password || ''));
+    el.roomNewName.value = '';
+    await openRoom(id);
+  });
+
+  el.dmForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const name = normalizeName(el.dmNewName.value);
+    el.dmNewName.value = '';
+    if (!name) return;
+    openDM(name);
+  });
+
+  const delegate = (list, handler) => {
+    list.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-action]');
+      if (!button) return;
+      handler(button.dataset.action, button.dataset.value);
+    });
+  };
+
+  delegate(el.roomList, (action, value) => { if (action === 'open-room') openRoom(value); });
+  delegate(el.dmList, (action, value) => { if (action === 'enter') enterChat(value); });
+  delegate(el.peerList, (action, value) => { if (action === 'open-dm') openDM(value); });
+
+  el.composer.addEventListener('submit', (event) => {
+    event.preventDefault();
+    sendMessage(el.composerInput.value);
+  });
+  el.composerInput.addEventListener('input', autoGrow);
+  el.composerInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage(el.composerInput.value);
+    }
+  });
+
+  el.btnLeave.addEventListener('click', leaveChat);
+  el.btnLogout.addEventListener('click', () => {
+    dialog({
+      title: 'Abmelden?',
+      sub: 'Dein Konto und der Wiederherstellungs-Code bleiben auf diesem Gerät gespeichert.',
+      actions: [{ label: 'Bleiben', value: null }, { label: 'Abmelden', kind: 'danger', value: 'yes' }],
+    }).then((result) => { if (result && result.action === 'yes') logout(); });
+  });
+  el.btnSidebar.addEventListener('click', () => el.sidebar.classList.toggle('sidebar--open'));
+
+  el.btnInvite.addEventListener('click', () => {
+    try {
+    const roomId = currentRoomId();
+    const room = roomId ? S.rooms.get(roomId) : null;
+    if (!room) return;
+    const url = QR.roomInvite({ room: roomId, name: S.me.name, origin: `${location.origin}${location.pathname}` });
+    const box = document.createElement('div');
+    box.className = 'qrbox';
+    box.innerHTML = QR.svg(url, { dark: '#0b1020', light: '#ffffff', cell: 6, margin: 2, radius: 1.5 });
+    const meta = document.createElement('div');
+    meta.className = 'kv';
+    meta.style.marginTop = '14px';
+    meta.innerHTML = `<b>Raum</b><span>${escapeHTML(room.name)}</span><b>ID</b><span>${escapeHTML(roomId)}</span>` +
+      `<b>Verschlüsselt</b><span>${room.pw ? 'ja (Passwort nötig)' : 'nein (offener Raum)'}</span>` +
+      `<b>Link</b><span style="word-break:break-all">${escapeHTML(url)}</span>`;
+    dialog({
+      title: 'Freunde einladen',
+      sub: 'QR-Code scannen oder den Link schicken. Der Raum-Schlüssel bleibt im Fragment und geht nie an einen Server.',
+      wide: true,
+      body: box,
+      actions: [{ label: 'Link kopieren', value: 'copy' }, { label: 'Fertig', kind: 'primary', value: null }],
+    }).then((result) => {
+      if (result && result.action === 'copy' && navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => toast('Link kopiert.', 'ok')).catch(() => toast(url));
+      }
+    });
+    const modal = el.modalRoot.querySelector('.modal');
+    if (modal) modal.appendChild(meta);
+    } catch (err) {
+      toast('Einladung fehlgeschlagen: ' + err.message, 'error');
+    }
+  });
+
+  el.btnSettings.addEventListener('click', async () => {
+    const local = localAccounts()[S.me.name];
+    const result = await dialog({
+      title: 'Einstellungen',
+      sub: 'Schlüssel, Benachrichtigungen und Admin-Zugang. Alles bleibt auf diesem Gerät.',
+      fields: [
+        { name: 'adminKey', label: 'Privater Admin-Schlüssel (JWK)', type: 'textarea', placeholder: '{"kty":"EC","crv":"P-256","d":"…"}' },
+      ],
+      body: `<div class="kv">
+          <b>Version</b><span>${APP_VERSION} · Spiele ${typeof GX !== 'undefined' ? GX.VERSION : '–'}</span>
+          <b>Broker</b><span>${BROKER}</span>
+          <b>Namespace</b><span>${NS}</span>
+          <b>Konto</b><span>${escapeHTML(S.me.name)}</span>
+          <b>Wiederherstellung</b><span>${escapeHTML(local ? local.code : '–')}</span>
+          <b>QR-Kodierung</b><span>${typeof QR !== 'undefined' ? QR.ENCODING + (QR.isUTF8() ? ' ✓' : ' ✗') : '–'}</span>
+          <b>Admin</b><span>${S.adminPriv ? 'privater Schlüssel geladen' : 'nicht geladen'}</span>
+        </div>
+        <div class="tabs" style="margin-top:14px">
+          <button type="button" class="chip" id="set-notify">${S.settings.notify ? '🔔 Benachrichtigungen: an' : '🔕 Benachrichtigungen: aus'}</button>
+          <button type="button" class="chip" id="set-guard">${S.settings.guard ? '🛡️ Sichtschutz-Meldung: an' : '🛡️ Sichtschutz-Meldung: aus'}</button>
+        </div>`,
+      actions: [{ label: 'Schließen', value: null }, { label: 'Admin-Schlüssel laden', kind: 'primary', value: 'admin' }],
+    });
+    if (result && result.action === 'admin') {
+      const raw = String((result.values && result.values.adminKey) || '').trim();
+      const parsed = safeParse(raw);
+      if (!parsed || !parsed.d || parsed.crv !== 'P-256') {
+        toast('Das sieht nicht nach einem privaten P-256-JWK aus.', 'error');
+        return;
+      }
+      S.adminPriv = parsed;
+      el.meAdmin.hidden = false;
+      toast('Admin-Schlüssel geladen – nur für diese Sitzung.', 'ok');
+    }
+  });
+
+  el.modalRoot.addEventListener('click', (event) => {
+    const notifyBtn = event.target.closest('#set-notify');
+    const guardBtn = event.target.closest('#set-guard');
+    if (!notifyBtn && !guardBtn) return;
+    event.preventDefault();
+    if (notifyBtn) {
+      S.settings.notify = !S.settings.notify;
+      notifyBtn.textContent = S.settings.notify ? '🔔 Benachrichtigungen: an' : '🔕 Benachrichtigungen: aus';
+    }
+    if (guardBtn) {
+      S.settings.guard = !S.settings.guard;
+      guardBtn.textContent = S.settings.guard ? '🛡️ Sichtschutz-Meldung: an' : '🛡️ Sichtschutz-Meldung: aus';
+    }
+    store(STORE.settings, S.settings);
+  });
+
+  /* --------------------------------------------------- Service Worker ---- */
+
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('sw.js').catch(() => { /* offline/Dateisystem */ });
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      const data = event.data;
+      if (!data) return;
+      if (data.type === 'open-room' && data.room) openRoom(data.room);
+      if (data.type === 'open-dm' && data.user) openDM(data.user);
+    });
+  }
+
+  /* ------------------------------------------------------ Einladungs-Link -- */
+
+  function takeInvite() {
+    const params = new URLSearchParams(location.search);
+    const roomId = params.get('room');
+    if (!roomId) return null;
+    history.replaceState({}, '', location.pathname);
+    return { room: roomId, name: params.get('name'), key: params.get('key') };
+  }
+
+  function joinFromInvite(invite) {
+    if (!S.rooms.has(invite.room)) {
+      S.rooms.set(invite.room, { id: invite.room, name: invite.name || invite.room, pw: !!invite.key, owner: '', t: Date.now() });
+      renderRooms();
+    }
+    if (invite.key) {
+      const saved = store(STORE.roomKeys) || {};
+      saved[invite.room] = invite.key;
+      store(STORE.roomKeys, saved);
+      S.roomKeys.delete(invite.room);
+    }
+    openRoom(invite.room);
+  }
+
+  /* -------------------------------------------------------------- Start --- */
+
+  setMode('login');
+  const savedMe = store(STORE.me);
+  const savedSettings = store(STORE.settings);
+  if (savedSettings) Object.assign(S.settings, savedSettings);
+  if (savedMe && savedMe.name && localAccounts()[savedMe.name]) {
+    startSession(localAccounts()[savedMe.name]);
+  } else {
+    el.authName.focus();
+  }
+
+  window.addEventListener('pagehide', () => {
+    announce('bye');
+    S.timers.forEach((t) => clearInterval(t));
+  });
+
+  /* Test- und Erweiterungs-Schnittstelle */
+  window.NEXUS = {
+    version: APP_VERSION,
+    ns: NS,
+    broker: BROKER,
+    state: S,
+    sha,
+    openRoom,
+    openDM,
+    leaveChat,
+    closeChat,
+    enterChat,
+    sendMessage,
+    showCover,
+    dismissCover,
+    toast,
+    dialog,
+    logout,
+    setMode,
+    createRoom,
+    joinQueue,
+    doMove,
+    renderGame,
+    adminSend,
+    GX: typeof GX !== 'undefined' ? GX : null,
+    QR: typeof QR !== 'undefined' ? QR : null,
+  };
+})();
+</script>
+</body>
+</html>
