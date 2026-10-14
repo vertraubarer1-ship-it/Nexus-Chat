@@ -1,5 +1,12 @@
+# Privater Admin-Schlüssel – darf NIEMALS ins Repo
+admin-key.local.txt
+*.local.key
+*.pem
+
+# Abhängigkeiten & Build-Kram
 node_modules/
+.DS_Store
+*.log
+npm-debug.log*
 .env
 .env.local
-*.log
-.DS_Store

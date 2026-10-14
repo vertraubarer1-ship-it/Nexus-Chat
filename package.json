@@ -2,17 +2,18 @@
   "name": "nexus-chat",
   "version": "1.0.0",
   "private": true,
-  "description": "Nexus-Chat – Echtzeit-Chat mit Login, einmaligen Namen, Raeumen und Admin-Key",
-  "main": "server.js",
+  "description": "Nexus / Freunde-Chat – E2EE-Chat über MQTT mit Räumen, DMs, Spielen, QR und PWA",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "node tools/serve.mjs",
+    "serve": "node tools/serve.mjs",
+    "test": "node --test tests/games.test.mjs tests/qr.test.mjs tests/e2e.test.mjs",
+    "icons": "bash tools/make-icons.sh",
+    "admin-key": "node tools/admin-key.mjs"
   },
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {
-    "express": "^4.21.2",
-    "ws": "^8.18.0"
+  "devDependencies": {
+    "jsdom": "^30.1.2"
   }
 }
